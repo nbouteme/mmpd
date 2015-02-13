@@ -1,0 +1,195 @@
+.music-info
+{
+	max-width: 100%;
+	white-space: nowrap;
+	padding:     0px 15px 0px 15px;
+}
+
+.music-info *
+{
+	overflow:      hidden;
+	text-overflow: ellipsis;
+}
+
+.box
+{
+	width:    100%;		/* desired width */
+	position: relative;
+	background-repeat: no-repeat;
+	background-size: 100%;
+}
+
+.box:before
+{
+	content:     "";
+	display:     block;
+	padding-top: 100%; 	/* initial ratio of 1:1*/
+}
+
+.dummy-content
+{
+	width: 100%;
+	position:  absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+}
+/*@media screen and (max-width: 368px) {*/
+.music-box
+{
+	box-shadow:          0 3px #DDD, 0 2px 18px -6px;
+	border-radius:		 7px;
+	width:				 100%;
+	margin-top:			 30px;
+	display:			 inline-block;
+	overflow: hidden;
+	background-color:	 #F6F6F6;
+}
+
+.nav-bar:hover
+{
+	width: 160px;
+}
+
+.nav-bar
+{
+	position: fixed;
+	z-index: 2;
+	transition: 0.3s;
+	width: 50px;
+	height: 100%;
+	background-color: #39517c;
+	top: 0;
+}
+
+.music-bar
+{
+	background-color: #e6e6e6;
+	position: fixed;
+	width: 100%;
+	height: 72px;
+	left: 0px;
+	bottom: 0;
+	box-shadow: 0px 0px 16px -2px;
+ 	z-index: 1;
+}
+
+#current-info
+{
+	display: inline-flex;
+}
+
+#current-tags
+{
+	display: block;
+	margin-left: 10px;
+}
+
+.content
+{
+	display: inline-block;
+	margin-bottom: 85px;
+}
+
+.swipeleft
+{
+	background-color: black;
+}
+
+#current-playing
+{
+	width:  66px;
+	height: 66px;
+	margin: 0;
+}
+
+@media screen and (max-width: 597px)
+{
+	.box
+	{
+		width: 50%;
+		display: inherit;
+	}
+	.music-info
+	{
+		max-width: 50%;
+	}
+	.music-box
+	{
+		display: inline-flex;
+	}
+}
+
+hr
+{
+	margin-top: 0;
+	margin-bottom: 5px;
+}
+
+#music-ctrl
+{
+	display: inline;
+}
+
+#music-ctrl i
+{
+	margin-left: 10px;
+}
+
+
+
+
+
+
+
+
+/*
+ui-slider: ui-slider-horizontal or ui-slider-vertical 
+ui-slider-handle:
+ui-slider-range
+*/
+//JQUERY UI EST DEGUEULASSE
+
+.ui-slider
+{
+	background-color: black;
+	border-radius: 0px;
+	display: block;
+}
+
+.ui-slider-horizontal
+{
+	height: 6px;
+	border: none;
+	border-radius: 0px;
+	display: block;
+}
+
+.ui-slider-range
+{
+	height: 6px;
+	background: #3B5788;
+	border-radius: 0px;
+	display: block;
+}
+
+.ui-slider-handle, .ui-state-default
+{
+	position: absolute;
+	height: 12px;
+	width: 12px;
+	background: #3B5788;
+	border-radius: 20px;
+	border: none;
+	display: block;
+	top: -3px;
+	margin-left: -7px;
+	outline-color: transparent;
+}
+
+.ui-widget-content
+{
+	background: #6A8DCB;
+	display: block;
+}
