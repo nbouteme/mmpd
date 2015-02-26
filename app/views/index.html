@@ -19,37 +19,28 @@
 					<h6 class="h6">{{current.tags.artist}}</h6>
 				</div>
 			</div>
+			<i id="pl-reveal" class="fa fa-3x fa-angle-up pull-right"></i>
+			<div id="playlist">
+				{% for i in 0..12 %}
+				<div class="pl-item">
+					<img class="pl-img" src="/mpd/songs/7fd23c39153318d13eb53deb7c76d3f7/cover">
+					<p class="pl-title"> Ceci est le nom de la musique</p>
+					<p class="pl-artist">Ceci est le nom de l'artiste</p>
+				</div>
+				{% endfor %}
+			</div>
 			<!-- <div id="music-ctrl">
-				<i					class="fa fa-3x fa-fast-backward"></i>
-				<i id="ctrl-btn"	class="fa fa-3x fa-play"></i>
-				<i					class="fa fa-3x fa-fast-forward"></i>
-			</div>-->
+			   <div class="ctrl-buttons">
+			   <i					class="fa fa-2x fa-fast-backward"></i>
+			   <i id="ctrl-btn"	class="fa fa-3x fa-play"></i>
+			   <i					class="fa fa-2x fa-fast-forward"></i>
+			   </div>
+			   </div>-->
 		</div>
-		
-		<!--<div class="nav-bar">
-			<div>
-				<div class="visible-xs">xs</div>
-				<div class="visible-sm">sm</div>
-				<div class="visible-md">md</div>
-				<div class="visible-lg">lg</div>
-			</div>
-		</div>-->
 		<div class="content" id="music-list">
-			<!--
-			<div class="col-lg-2 col-md-3 col-sm-4 col-xs-12">
-			 	<div class="music-box">
-			 		<div class="box"><img class="dummy-content" src="/mpd/songs/current/cover"></img></div>
-			 		<div class="music-info">
-			 			<h4 class="h4">{{tags.title}}</h4>
-			 			<h6 class="h6">{{tags.artist}}</h6>
-						<hr>
-			 		</div>
-			 	</div>
-			</div>
-			-->
 		</div>
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-		<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+		<script src="/assets/js/jquery-2.1.3.js"></script>
+		<script src="/assets/js/jquery-ui.js"></script>
 		<script src="/assets/js/bootstrap.min.js"></script>
 		<script src="/assets/js/main.js"></script>
 	</body>

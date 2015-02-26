@@ -5,12 +5,18 @@ class MPDController
 {
     private $sd;
     private $musicDir;
+
+    private function setupConnection()
+    {
+        $this->sd = stream_socket_client('unix:///var/lib/mpd/socket');
+        stream_set_blocking($this->sd, 1);
+        stream_set_timeout($this->sd, 5);
+        $str = fgets($this->sd, 8192);
+    }
     
     function __construct()
     {
-        $this->sd = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        socket_connect($this->sd, "localhost", 6600);
-        socket_read($this->sd, 40);
+        $this->setupConnection();
         $this->musicDir = Config::get('App.MusicDir');
     }
 
@@ -30,20 +36,25 @@ class MPDController
         header('Content-Type: application/json');
         echo json_encode($data, JSON_PRETTY_PRINT);
     }
-    
+
     public function sendRawCommand($cmd, $args = '')
     {
-        socket_write($this->sd, $cmd . ' ' . $args . "\n");
+        fwrite($this->sd, $cmd . ' ' . $args . "\n");
 
         $res = '';
         $buf = '';
 
         do
         {
-            $buf = socket_read($this->sd, 1);
+            $buf = fgets($this->sd, 8192);
             $res .= $buf;
-        } while(strcmp(substr($res, -3), "OK\n"));
+        } while(!stream_get_meta_data($this->sd)['timed_out'] && strcmp($buf, "OK\n") != 0);
 
+        if(stream_get_meta_data($this->sd)['timed_out'])
+        {
+            $this->setupConnection();
+            throw new Exception('Timeout');
+        }
         return $res;
     }
 
@@ -93,21 +104,27 @@ class MPDController
     public function _notify()
     {
         set_time_limit(5);
+        header('Connection: Keep-Alive');
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
         header('X-Accel-Buffering: no'); // pour nginx
-        header('Connection: Keep-Alive');
-
+        header('Transfer-encoding: chunked');
+        
         ob_end_clean();
-
         while (true)
         {
-            $data = $this->sendCommand('idle');
-            echo "data: " . json_encode($data) . "\n\n";
+            try {
+                $data = $this->sendCommand('idle');
+                echo "data: " . json_encode($data) . "\n\n";
+            }
+            catch(Exception $e)
+            {
+                echo ":welp\n\n";
+            }
             @ob_flush();
             flush();
         }
-        die;
+
     }
 
     public function getVolume()
@@ -151,8 +168,26 @@ class MPDController
     {
         header('Content-Type: application/json');
         $arr = $this->sendCommand('lsinfo', '/');
+
         foreach($arr as &$song)
+        {
+            Music::save($this->musicDir . '/' . $song['file']);
+            $song = array_change_key_case($song);
             $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
+        }
+
+        xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+            Music::tags($this->musicDir . '/' . $song['file']);
+            $song = array_change_key_case($song);
+            $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
+        $xhprof_data = xhprof_disable();
+        $XHPROF_ROOT = "/usr/share/pear/";
+        include_once $XHPROF_ROOT . "/xhprof_lib/utils/xhprof_lib.php";
+        include_once $XHPROF_ROOT . "/xhprof_lib/utils/xhprof_runs.php";
+
+        $xhprof_runs = new XHProfRuns_Default();
+        $run_id = $xhprof_runs->save_run($xhprof_data, "xhprof_testing");
+
         echo json_encode($arr, JSON_PRETTY_PRINT);        
     }
 
@@ -176,6 +211,9 @@ class MPDController
     {
         $data = Music::imageFromId($id);
         header('Content-Type: ' . $data['type']);
+        header('Cache-Control: public');
+        header('Pragma:');
+        header('Expires: Thu, 01 Dec 2020 16:00:00 GMT');
         echo $data['data'];
     }
 
@@ -183,10 +221,6 @@ class MPDController
     {
         $data = $this->sendCommand('status');
         $cdata = $this->sendCommand('currentsong');
-        if(empty($data) || empty($cdata))
-        {
-            die('sdf');
-        }
         
         $fn = $cdata['file'];
         $current = '--:--';
@@ -217,10 +251,6 @@ class MPDController
     {
         $data = $this->sendCommand('status');
         $cdata = $this->sendCommand('currentsong');
-        if(empty($data) || empty($cdata))
-        {
-            die('sdf');
-        }
         
         $fn = $cdata['file'];
         $fd = fopen("php://input", 'rb');
