@@ -63,4 +63,20 @@ Router::register('GET', ['url'        => '/mpd/notification'        ,
                          'controller' => 'MPDController'            ,
                          'action'     => 'notify']);
 
+Router::register('GET', ['url'        => '/mpd/artists'        ,
+                         'controller' => 'MPDController'            ,
+                         'action'     => 'getArtists']);
+
+Router::register('GET', ['url'        => '/mpd/albums'        ,
+                         'controller' => 'MPDController'            ,
+                         'action'     => 'getAlbums']);
+
+Router::register('GET', ['url'        => '/mpd/albums/{artist}/albums',
+                         'controller' => 'MPDController'              ,
+                         'action'     => 'getAlbumsFromArtist']);
+
+Router::register('GET', ['url'        => '/mpd/artist/{albums}',
+                         'controller' => 'MPDController'      ,
+                         'action'     => 'getArtistOfAlbum']);
+
 ?>

@@ -220,12 +220,149 @@ hr
 	transform: rotateX(180deg);
 }
 
-/*
-ui-slider: ui-slider-horizontal or ui-slider-vertical 
-ui-slider-handle:
-ui-slider-range
-*/
-//JQUERY UI EST DEGUEULASSE
+.context-menu
+{
+	background-color: white;
+	padding: 5px 20px 5px;
+	border: 1px rgb(186, 186, 186) solid;
+	box-shadow: 0 0 24px -6px;
+}
+
+.context-menu hr
+{
+	border-top: 1px rgb(166, 166, 166) solid;
+}
+
+.context-menu *
+{
+	white-space: nowrap;
+}
+
+
+.context-menu
+{
+	background-color: white;
+	padding: 0;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border: 1px rgb(186, 186, 186) solid;
+	box-shadow: 0 0 24px -6px;
+}
+
+.context-menu .menu-item
+{
+	cursor: default;
+	padding-left: 20px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-right: 20px;
+	background-color: white;
+}
+
+.context-menu .menu-item:hover
+{
+	color: white;
+	background-color: rgb(81, 146, 209);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .ui-slider
 {

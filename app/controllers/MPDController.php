@@ -37,6 +37,58 @@ class MPDController
         echo json_encode($data, JSON_PRETTY_PRINT);
     }
 
+    public function getArtists()
+    {
+        $rest = $this->sendRawCommand('list artist');
+        $rest = $this->parseResp($rest, false);
+
+        foreach($rest as $k => $v)
+            $data[] = $v['Artist'];
+        header('Content-Type: application/json');
+        echo json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    public function getAlbums()
+    {
+        $rest = $this->sendRawCommand('list album');
+        $rest = $this->parseResp($rest, false);
+
+        foreach($rest as $k => $v)
+            $data[] = $v['Album'];
+        header('Content-Type: application/json');
+        echo json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    public function getAlbumsFromArtist($art)
+    {
+        $art = urldecode($art);
+        $rest = $this->sendRawCommand('search Artist "' . $art . '"');
+        $rest = $this->parseResp($rest, true);
+        $data = array();
+        
+        foreach($rest as $v)
+            if(!in_array($v['Album'], $data))
+                $data[] = $v['Album'];
+
+        header('Content-Type: application/json');
+        echo json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    public function getArtistOfAlbum($alb)
+    {
+        $alb = urldecode($alb);
+        $rest = $this->sendRawCommand('search Album "' . $alb . '"');
+        $rest = $this->parseResp($rest, true);
+        $data = array();
+        
+        foreach($rest as $v)
+            if(!in_array($v['Artist'], $data))
+                $data[] = $v['Artist'];
+
+        header('Content-Type: application/json');
+        echo json_encode($data, JSON_PRETTY_PRINT);
+    }
+
     public function sendRawCommand($cmd, $args = '')
     {
         fwrite($this->sd, $cmd . ' ' . $args . "\n");
