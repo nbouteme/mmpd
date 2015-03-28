@@ -228,17 +228,9 @@ class MPDController
             $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
         }
 
-        xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
-            Music::tags($this->musicDir . '/' . $song['file']);
-            $song = array_change_key_case($song);
-            $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
-        $xhprof_data = xhprof_disable();
-        $XHPROF_ROOT = "/usr/share/pear/";
-        include_once $XHPROF_ROOT . "/xhprof_lib/utils/xhprof_lib.php";
-        include_once $XHPROF_ROOT . "/xhprof_lib/utils/xhprof_runs.php";
-
-        $xhprof_runs = new XHProfRuns_Default();
-        $run_id = $xhprof_runs->save_run($xhprof_data, "xhprof_testing");
+        Music::tags($this->musicDir . '/' . $song['file']);
+        $song = array_change_key_case($song);
+        $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
 
         echo json_encode($arr, JSON_PRETTY_PRINT);        
     }

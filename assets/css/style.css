@@ -185,6 +185,15 @@
 	{
 		display: inline-flex;
 	}
+
+	.ctrl-buttons
+	{
+		position: relative;
+		left: 85%;
+		margin-top: 10px;
+		margin-left: 0;
+		margin-right: auto;
+	}
 }
 
 hr
