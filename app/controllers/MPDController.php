@@ -8,7 +8,7 @@ class MPDController
 
     private function setupConnection()
     {
-        $this->sd = stream_socket_client('unix:///var/lib/mpd/socket');
+        $this->sd = stream_socket_client(Config::get('App.Type') . '://' . Config::get('App.Address'));
         stream_set_blocking($this->sd, 1);
         stream_set_timeout($this->sd, 2);
         $str = fgets($this->sd, 8192);

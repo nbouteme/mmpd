@@ -1,7 +1,5 @@
 {
     "require": {
-        "twig/twig": "~1.7",
-        "cboden/ratchet": "0.3.*",
         "hoa/eventsource": "~2.0"
     }
 }
