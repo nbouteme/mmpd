@@ -8,9 +8,11 @@ class MPDController
 
     private function setupConnection()
     {
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
         $this->sd = stream_socket_client(Config::get('App.Type') . '://' . Config::get('App.Address'));
         stream_set_blocking($this->sd, 1);
-        stream_set_timeout($this->sd, 2);
+        stream_set_timeout($this->sd, 1);
         $str = fgets($this->sd, 8192);
     }
     
@@ -341,7 +343,7 @@ class MPDController
     // Ne pas utiliser directement.
     public function _notify()
     {
-        set_time_limit(1);
+        set_time_limit(3);
         header('Connection: Keep-Alive');
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
