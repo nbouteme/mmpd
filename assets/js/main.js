@@ -1,5 +1,5 @@
 // Decommenter pour supprimer l'affichage
-//console.log = function(){}
+//
 //var $;
 
 function updateOptions()
@@ -11,7 +11,7 @@ function updateOptions()
 	}).done(function(val)
 		{
 			console.log('Received options');
-			// Mettre a jour repeat et random ici
+            document.lastSettings = val;
 		});
 }
 
@@ -26,18 +26,36 @@ function musicDiff(a, b)
 }
 
 var source = new EventSource("/server.php");
-source.onmessage = function(event)
+
+function handleData(obj)
 {
-	console.log(event.data);
-	switch(JSON.parse(event.data).changed)
-	{
-		case 'options': updateOptions();   break;
-		case 'playlist': updateSongs(); break;
-		case 'player': updatePlayer();     break;
-		default:
-		console.log('Unhandled action: ' + obj.changed);
-	}
+    switch(obj.changed)
+    {
+        case 'options': updateOptions();   break;
+        case 'playlist': /* On verra plus tard... */ break;
+        case 'player': updatePlayer();     break;
+        default:
+        console.log('Unhandled action: ' + obj.changed);
+    }
 }
+
+source.addEventListener("data",
+                        function(event)
+                        {
+                            var obj = JSON.parse(event.data);
+                            
+                            if(obj.constructor !== Array)
+                                handleData(obj);
+                            else
+                                for(var i in obj)
+                                    handleData(obj[i]);
+                        });
+
+source.onerror = function(event)
+{
+    updateOptions();
+    updatePlayer();
+};
 
 $(document).bind('click', function(event)
     {

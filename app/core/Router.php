@@ -30,17 +30,19 @@ class Router
         $parsed['par']  = ['needed' => array(), 'optional' => array()]; // par contient 2 tableau avec le nom des argument
         foreach ($parts as $part)
             if (strlen($part) < 3)
-                $parsed['pattern'].= $part . '\\/';
+                $parsed['pattern'] .= $part . '\\/';
             else
             {
                 if ($part[0] != '{')
                     $parsed['pattern'] .= $part . '\\/';
                 else if ($part[1] != '?')
-                    $parsed['pattern'] .= '([\w-]*)\\/';
+                    $parsed['pattern'] .= '([\x{0020}-\x{002E} \x{0030}-\x{FFFF}]*)\\/';
+    //$parsed['pattern'] .= '([\!\w\- =%0-9\.\(\)\,\"\']*)\\/';
                 $parsed['params'][] = substr($part, 1, -1);
                 $parsed['par'][$part[1] != '?' ? 'needed' : 'optional'][] = substr($part, 1 + ($part[1] != '?' ? 1 : 0), -1);
             }
-        $parsed['pattern'] .= '$#';
+        $parsed['pattern'] .= '$#u';
+        //if($uri == '/mpd/artist/{albums}') die(print_r($parsed));
         return $parsed;
     }
 

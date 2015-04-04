@@ -10,7 +10,7 @@ class MPDController
     {
         $this->sd = stream_socket_client('unix:///var/lib/mpd/socket');
         stream_set_blocking($this->sd, 1);
-        stream_set_timeout($this->sd, 5);
+        stream_set_timeout($this->sd, 2);
         $str = fgets($this->sd, 8192);
     }
     
@@ -20,18 +20,58 @@ class MPDController
         $this->musicDir = Config::get('App.MusicDir');
     }
 
+    function __destruct()
+    {
+        fclose($this->sd);
+    }
+    
     public function home()
     {
         View::render('index');
+    }
+
+    public function getPlaylistContent($name)
+    {
+        $rest = $this->sendRawCommand('listplaylistinfo "' . $name . '"');
+        $rest = $this->parseResp($rest, true);
+
+        foreach($rest as &$song)
+        {
+            Music::save($this->musicDir . '/' . $song['file']);
+            $song = array_change_key_case($song);
+            $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
+        }
+        header('Content-Type: application/json');
+        echo json_encode($rest, JSON_PRETTY_PRINT);
+    }
+
+    public function getPlaylists()
+    {
+        $rest = $this->sendRawCommand('listplaylists');
+        $rest = $this->parseResp($rest, true);
+        
+        header('Content-Type: application/json');
+        echo json_encode($rest, JSON_PRETTY_PRINT);
     }
 
     public function getPlaylist()
     {
         $rest = $this->sendRawCommand('playlist');
         $rest = $this->parseResp($rest, false);
-        
+
         foreach($rest as $k => $f)
             $data[] = Music::tags($this->musicDir . '/' . $f);
+
+        foreach($rest as $k => $f)
+        {
+            foreach($data as &$song)
+            {
+                $song['file'] = $f;
+                continue;
+            }
+            continue;
+        }
+
         
         header('Content-Type: application/json');
         echo json_encode($data, JSON_PRETTY_PRINT);
@@ -48,6 +88,44 @@ class MPDController
         echo json_encode($data, JSON_PRETTY_PRINT);
     }
 
+    public function getArtistCover($id)
+    {
+        ob_start();
+        $this->getFilesFromArtist($id);
+        $json = json_decode(ob_get_clean());
+        $this->getCover(md5($this->musicDir . '/' . $json[0]));
+    }
+
+    public function getPlaylistCover($id)
+    {
+        //die(urldecode($id));
+        ob_start();
+        $this->getFilesFromPlaylist($id);
+        $json = json_decode(ob_get_clean());
+        if(!isset($json[0]))
+        {
+            header('Content-Type: image/jpg');
+            header('Cache-Control: public');
+            header('Pragma:');
+
+            ob_start();
+            passthru('cat assets/img/cover_default.jpg', $a);
+            $buf = ob_get_clean();
+            echo $buf;
+            die;
+        }
+        $this->getCover(md5($this->musicDir . '/' . $json[0]));
+    }
+    
+    public function getAlbumCover($id)
+    {
+        ob_start();
+        $this->getFilesFromAlbum($id);
+        $json = json_decode(ob_get_clean());
+        
+        $this->getCover(md5($this->musicDir . '/' . $json[0]));
+    }
+    
     public function getAlbums()
     {
         $rest = $this->sendRawCommand('list album');
@@ -62,7 +140,8 @@ class MPDController
     public function getAlbumsFromArtist($art)
     {
         $art = urldecode($art);
-        $rest = $this->sendRawCommand('search Artist "' . $art . '"');
+        $art = $art == "Inconnu" ? '' : $art;
+        $rest = $this->sendRawCommand('find Artist "' . $art . '"');
         $rest = $this->parseResp($rest, true);
         $data = array();
         
@@ -71,6 +150,89 @@ class MPDController
                 $data[] = $v['Album'];
 
         header('Content-Type: application/json');
+        echo json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    public function getSongsFromArtist($art)
+    {
+        $art = urldecode($art);
+        $art = $art == "Inconnu" ? '' : $art;
+        $rest = $this->sendRawCommand('find Artist "' . $art . '"');
+        $rest = $this->parseResp($rest, true);
+
+        foreach($rest as &$song)
+        {
+            Music::save($this->musicDir . '/' . $song['file']);
+            $song = array_change_key_case($song);
+            $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($rest, JSON_PRETTY_PRINT);
+    }
+
+    public function getAlbumContent($art)
+    {
+        $art = urldecode($art);
+        $art = $art == "Inconnu" ? '' : $art;
+        $rest = $this->sendRawCommand('find album "' . $art . '"');
+        $rest = $this->parseResp($rest, true);
+
+        $data = array();
+        foreach($rest as $v)
+            if(!in_array($v['file'], $data))
+                $data[] = $v['file'];
+
+        $d = array();
+        foreach($data as $k => $f)
+            $d[] = Music::tags($this->musicDir . '/' . $f);
+
+        header('Content-Type: application/json');
+        echo json_encode($d, JSON_PRETTY_PRINT);
+    }
+
+    public function getFilesFromPlaylist($art)
+    {
+        $art = urldecode($art);
+
+        $rest = $this->sendRawCommand('listplaylistinfo "' . $art . '"');
+        $rest = $this->parseResp($rest, true);
+        $data = array();
+        foreach($rest as $v)
+            if(!in_array($v['file'], $data))
+                $data[] = $v['file'];
+
+        echo json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    public function getFilesFromAlbum($art)
+    {
+        $art = urldecode($art);
+        $art = $art == "Inconnu" ? '' : $art;
+        $art = str_replace('"', '\"', $art);
+
+        $rest = $this->sendRawCommand('find album "' . $art . '"');
+        $rest = $this->parseResp($rest, true);
+        $data = array();
+        foreach($rest as $v)
+            if(!in_array($v['file'], $data))
+                $data[] = $v['file'];
+
+        echo json_encode($data, JSON_PRETTY_PRINT);
+    }
+
+    public function getFilesFromArtist($art)
+    {
+        $art = urldecode($art);
+        $art = $art == "Inconnu" ? '' : $art;
+        $rest = $this->sendRawCommand('find Artist "' . $art . '"');
+        $rest = $this->parseResp($rest, true);
+        $data = array();
+        
+        foreach($rest as $v)
+            if(!in_array($v['file'], $data))
+                $data[] = $v['file'];
+
         echo json_encode($data, JSON_PRETTY_PRINT);
     }
 
@@ -100,6 +262,7 @@ class MPDController
         {
             $buf = fgets($this->sd, 8192);
             $res .= $buf;
+            if(substr($buf, 0, 3) == "ACK") die("HOLY SHEET\n" . $buf);
         } while(!stream_get_meta_data($this->sd)['timed_out'] && strcmp($buf, "OK\n") != 0);
 
         if(stream_get_meta_data($this->sd)['timed_out'])
@@ -113,6 +276,29 @@ class MPDController
     public function sendCommand($cmd, $args = '')
     {
         return $this->parseResp($this->sendRawCommand($cmd, $args));
+    }
+
+    public function download($fn)
+    {
+        $path_parts = pathinfo(urldecode($fn));
+        $fn  = $path_parts['basename'];
+
+        if(!file_exists($this->musicDir . '/' . urldecode($fn)))
+            die('lel');
+        ob_end_clean();
+        
+        header('Cache-Control: no-cache');
+        header('X-Accel-Buffering: no'); // pour nginx
+        header('Transfer-encoding: chunked');
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . basename($fn) . '"');
+        header('Expires: 0');
+        header('Pragma: public');
+        header('Connection: Keep-Alive');
+        header('Content-Length: ' . filesize($this->musicDir . '/' . urldecode($fn)));
+
+        readfile($this->musicDir . '/' . urldecode($fn));        
     }
 
     private function parseResp($resp, $forcearray = false)
@@ -155,7 +341,7 @@ class MPDController
     // Ne pas utiliser directement.
     public function _notify()
     {
-        set_time_limit(5);
+        set_time_limit(1);
         header('Connection: Keep-Alive');
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
@@ -163,20 +349,24 @@ class MPDController
         header('Transfer-encoding: chunked');
         
         ob_end_clean();
+        $server = new Hoa\Eventsource\Server();
         while (true)
         {
-            try {
+            $fp = fopen('test', 'a');
+            fwrite($fp, '0');
+            fclose($fp);
+            try
+            {
                 $data = $this->sendCommand('idle');
-                echo "data: " . json_encode($data) . "\n\n";
+                $server->data->send(json_encode($data));
             }
             catch(Exception $e)
             {
-                echo ":welp\n\n";
+                $server->comment('ebin');
             }
             @ob_flush();
             flush();
         }
-
     }
 
     public function getVolume()
@@ -200,13 +390,38 @@ class MPDController
     {
         $size = (int) $_SERVER['CONTENT_LENGTH'];
         $fd = fopen("php://input", 'rb');
-        $this->setValue('repeat', fread($fd, 1));
+        $this->setValue('repeat', fread($fd, $size));
+    }
+
+    public function setSingle()
+    {
+        $size = (int) $_SERVER['CONTENT_LENGTH'];
+        $fd = fopen("php://input", 'rb');
+        $this->setValue('single', fread($fd, $size));
     }
 
     public function isRandom()
     {
         header('Content-Type: application/json');
         echo json_encode($this->sendCommand('status')['random'], JSON_PRETTY_PRINT);
+    }
+
+    public function backdoor()
+    {
+        $size = (int) $_SERVER['CONTENT_LENGTH'];
+        $fd = fopen("php://input", 'rb');
+        
+        $json = fread($fd, $size);
+        $json = json_decode($json);
+
+        $rest = $this->sendRawCommand($json->cmd, (isset($json->args) ? $json->args : '') . "\n");
+        $s = substr($rest, -3) == "OK\n";
+        $rest = $this->parseResp($rest, isset($json->process));
+
+        $rest['error'] = $s ? 0 : 42;
+
+        header('Content-Type: application/json');
+        echo json_encode($rest, JSON_PRETTY_PRINT);    
     }
     
     public function setRandom()
@@ -221,17 +436,14 @@ class MPDController
         header('Content-Type: application/json');
         $arr = $this->sendCommand('lsinfo', '/');
 
+        $arr = array_filter($arr, function($a){ return isset($a['file']);});
+
         foreach($arr as &$song)
         {
             Music::save($this->musicDir . '/' . $song['file']);
             $song = array_change_key_case($song);
             $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
         }
-
-        Music::tags($this->musicDir . '/' . $song['file']);
-        $song = array_change_key_case($song);
-        $song['coverId'] = md5($this->musicDir . '/' . $song['file']);
-
         echo json_encode($arr, JSON_PRETTY_PRINT);        
     }
 
@@ -245,7 +457,20 @@ class MPDController
 
     public function getCurrentCover()
     {
-        $fn = $this->sendCommand('currentsong')['file'];
+        $fn = $this->sendCommand('currentsong');
+        if(!isset($fn['file']))
+        {
+            header('Content-Type: image/jpg');
+            header('Cache-Control: public');
+            header('Pragma:');
+
+            ob_start();
+            passthru('cat assets/img/cover_default.jpg', $a);
+            $buf = ob_get_clean();
+            echo $buf;
+            die;
+        }
+        $fn = $fn['file'];
         $data = Music::image($this->musicDir . '/' . $fn);
         header('Content-Type: ' . $data['type']);
         echo $data['data'];
@@ -306,6 +531,5 @@ class MPDController
         $time = (float)$readData * (float)$durationSec;
         $this->setValue('seekcur ', $time);
     }
-  
 }
 ?>

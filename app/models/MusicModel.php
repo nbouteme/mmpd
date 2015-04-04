@@ -14,8 +14,9 @@ class Music
         if(!file_exists('app/cache/' . md5($fn) . '.json'))
         {
             ob_start();
-            passthru('ffprobe -v quiet ' . escapeshellarg($fn) . ' -of json -show_format');
+            passthru('ffprobe -v quiet ' . escapeshellarg1($fn) . ' -of json -show_format', $a);
             $buf = ob_get_clean();
+            if($a != 0) die(escapeshellarg1($fn));
             file_put_contents('app/cache/' . md5($fn) . '.json', $buf);            
         }
 
@@ -55,7 +56,7 @@ class Music
         else
         {
             ob_start();
-            passthru('ffmpeg -i ' . escapeshellarg($fn) . ' -f image2pipe -');
+            passthru('ffmpeg -i ' . escapeshellarg1($fn) . ' -f image2pipe -');
             $buf = ob_get_clean();
             $fd = fopen("app/cache/$h", 'w');
             fwrite($fd, $buf);
@@ -70,8 +71,9 @@ class Music
     public static function formatData($fn)
     {
         ob_start();
-        passthru('ffprobe -of json ' . escapeshellarg1($fn) .' -hide_banner -show_format -pretty -v quiet');
+        passthru('ffprobe -of json ' . escapeshellarg1($fn) .' -hide_banner -show_format -pretty -v quiet', $a);
         $buf = ob_get_clean();
+        if($a != 0) die(escapeshellarg1($fn));
         return json_decode($buf, true);
     }
 
