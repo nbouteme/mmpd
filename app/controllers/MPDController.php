@@ -434,7 +434,8 @@ class MPDController
     public function getSongs()
     {
         header('Content-Type: application/json');
-        $arr = $this->sendCommand('lsinfo', '/');
+        $arr = $this->sendRawCommand('lsinfo /');
+        $arr = $this->parseResp($arr, true);
 
         $arr = array_filter($arr, function($a){ return isset($a['file']);});
 
