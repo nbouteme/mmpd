@@ -1,0 +1,7 @@
+162,167d161
+<     public function comment ($data) {
+<         $this->_response->writeAll(':' . $data . "\n\n");
+<         $this->_response->flush(true);
+<     }
+< 
+<     

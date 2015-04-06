@@ -15,6 +15,9 @@ Configuration
 Je suppose qu'une machine est sur le réseau et dispose du music player
 daemon configuré et fonctionnel.
 
+Clonez le repo, executez `composer install`, puis executez pat.sh
+qui ajoute une methode à une certaine classe...
+
 Le serveur qui exécute le script PHP n'est pas forcément celui qui
 exécute mpd.  Il suffit d'autoriser n'importe qui à se connecter à MPD
 avec `bind_to_address "0.0.0.0:6600"` que je ne recommende que si la
