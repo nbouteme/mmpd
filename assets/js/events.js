@@ -1,17 +1,14 @@
-function initInterface()
-{
-	$("#time-slider").slider(
-		{
-			change: setTime,
-			range: "min",
-			step: 0.1
-		});
+function initInterface() {
+    $("#time-slider").slider({
+        change: setTime,
+        range: "min",
+        step: 0.1
+    });
 }
 
-function initEventHandlers()
-{
+function initEventHandlers() {
     $("#time-slider").hover(onHoverTimeSliderIn,
-                            onHoverTimeSliderOut);
+        onHoverTimeSliderOut);
     $("#time-slider").mousemove(onMoveOverTimeSlider);
     $("#ctrl-btn").click(togglePlayback);
     $("#prev-btn").click(gotoPrev);
@@ -20,18 +17,16 @@ function initEventHandlers()
     $("#page-sel-btn").click(pageMenu);
 
     // mobile // jquerymobile est pas mal *fat*, donc vaut mieux le charger qu'en cas de besoin
-    if(navigator.userAgent.match('Android'))
-        $.getScript( "/assets/js/jquery.mobile.custom.js",
-                     function()
-                     {
-                         $("#music-ctrl").on("swipeleft", gotoPrev);
-                         $("#music-ctrl").on("swiperight", gotoNext);
-                     });
+    if (navigator.userAgent.match('Android'))
+        $.getScript("/assets/js/jquery.mobile.custom.js",
+            function() {
+                $("#music-ctrl").on("swipeleft", gotoPrev);
+                $("#music-ctrl").on("swiperight", gotoNext);
+            });
 }
 
-function init()
-{
-    if(!sessionStorage.getItem('page'))
+function init() {
+    if (!sessionStorage.getItem('page'))
         sessionStorage.setItem('page', 'Bibliothèque');
 
     askFullScreen();
